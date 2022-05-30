@@ -1,10 +1,3 @@
-/*!
- * Simple chat program (client side).cpp - http://github.com/hassanyf
- * Version - 2.0.1
- *
- * Copyright (c) 2016 Hassan M. Yousuf
- */
-
 #include <iostream>
 #include <string.h>
 #include <sys/types.h>
