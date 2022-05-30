@@ -1,86 +1,73 @@
 #include <iostream>
-#include <string.h>
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <stdlib.h>
 #include <unistd.h>
+#include <sys/socket.h>
 #include <netdb.h>
+#include <arpa/inet.h>
+#include <string.h>
+#include <string>
 
 using namespace std;
 
 int main()
 {
-
-    int client;
-    int portNum = 1500; // NOTE that the port number is same for both client and server
-    bool isExit = false;
-    int bufsize = 1024;
-    char buffer[bufsize];
-    char *ip = "127.0.0.1";
-
-    struct sockaddr_in server_addr;
-
-    client = socket(AF_INET, SOCK_STREAM, 0);
-
-
-    if (client < 0)
+    //	Create a socket
+    int sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock == -1)
     {
-        cout << "\nError establishing socket..." << endl;
-        exit(1);
+        return 1;
     }
 
+    //	Create a hint structure for the server we're connecting with
+    int port = 54000;
+    string ipAddress = "127.0.0.1";
 
-    cout << "\n=> Socket client has been created..." << endl;
+    sockaddr_in hint;
+    hint.sin_family = AF_INET;
+    hint.sin_port = htons(port);
+    inet_pton(AF_INET, ipAddress.c_str(), &hint.sin_addr);
 
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(portNum);
+    //	Connect to the server on the socket
+    int connectRes = connect(sock, (sockaddr*)&hint, sizeof(hint));
+    if (connectRes == -1)
+    {
+        return 1;
+    }
 
+    //	While loop:
+    char buf[4096];
+    string userInput;
 
-    if (connect(client,(struct sockaddr *)&server_addr, sizeof(server_addr)) == 0)
-        cout << "=> Connection to the server port number: " << portNum << endl;
-
-
-
-    cout << "=> Awaiting confirmation from the server..." << endl; //line 40
-    recv(client, buffer, bufsize, 0);
-    cout << "=> Connection confirmed, you are good to go...";
-
-    cout << "\n\n=> Enter # to end the connection\n" << endl;
-
-    // Once it reaches here, the client can send a message first.
 
     do {
-        cout << "Client: ";
-        do {
-            cin >> buffer;
-            send(client, buffer, bufsize, 0);
-            if (*buffer == '#') {
-                send(client, buffer, bufsize, 0);
-                *buffer = '*';
-                isExit = true;
-            }
-        } while (*buffer != 42);
+        //		Enter lines of text
+        cout << "> ";
+        getline(cin, userInput);
 
-        cout << "Server: ";
-        do {
-            recv(client, buffer, bufsize, 0);
-            cout << buffer << " ";
-            if (*buffer == '#') {
-                *buffer = '*';
-                isExit = true;
-            }
+        //		Send to server
+        int sendRes = send(sock, userInput.c_str(), userInput.size() + 1, 0);
+        if (sendRes == -1)
+        {
+            cout << "Could not send to server! Whoops!\r\n";
+            continue;
+        }
 
-        } while (*buffer != 42);
-        cout << endl;
+        //		Wait for response
+        memset(buf, 0, 4096);
+        int bytesReceived = recv(sock, buf, 4096, 0);
+        if (bytesReceived == -1)
+        {
+            cout << "There was an error getting response from server\r\n";
+        }
+        else
+        {
+            //		Display response
+            cout << "SERVER> " << string(buf, bytesReceived) << "\r\n";
+        }
+    } while(true);
 
-    } while (!isExit);
+    //	Close the socket
+    close(sock);
 
-
-
-    cout << "\n=> Connection terminated.\nGoodbye...\n";
-
-    close(client);
     return 0;
 }
