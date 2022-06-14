@@ -2,7 +2,7 @@ Run `make` command in terminal for creating an executable file named binary.
 
 For running the binary type - `./server portnumber`
 
-Go to your browser and connect to the sever using `localhost:portnumber` ...
+Go to your browser and connect to the server using `localhost:portnumber` ...
 
 Beneath is a quick sight of how it looks - 
 
