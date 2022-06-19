@@ -1,6 +1,5 @@
 # Solution of Exercise of Linux
 
-## Solution 1 :
 ### Varients of <code>ls</code> command
 
 * <code>ls</code> : List all directries
